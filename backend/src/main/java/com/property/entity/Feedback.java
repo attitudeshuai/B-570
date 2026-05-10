@@ -14,9 +14,13 @@ public class Feedback {
     
     private String contactName;
     
+    private String type = "其他";
+    
     private String status = "pending"; // pending, processing, resolved
     
     private String reply;
+    
+    private Integer ratingScore;
     
     private LocalDateTime createdAt;
     

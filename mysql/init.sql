@@ -25,10 +25,20 @@ CREATE TABLE IF NOT EXISTS feedback (
     content VARCHAR(1000) NOT NULL,
     contact VARCHAR(100),
     contact_name VARCHAR(50),
+    type VARCHAR(50) DEFAULT '其他',
     status VARCHAR(20) DEFAULT 'pending',
     reply VARCHAR(1000),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 满意度评分表
+CREATE TABLE IF NOT EXISTS rating (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    feedback_id BIGINT NOT NULL UNIQUE,
+    score INT NOT NULL CHECK (score BETWEEN 1 AND 5),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (feedback_id) REFERENCES feedback(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 通知表
@@ -49,7 +59,7 @@ INSERT INTO notice (title, content, type) VALUES
 ('物业费缴纳通知', '尊敬的业主：2024年第一季度物业费已开始收取，请各位业主于本月25日前完成缴纳。可通过物业中心或线上渠道进行缴费，感谢您的配合！', '其他');
 
 -- 插入示例反馈
-INSERT INTO feedback (content, contact, contact_name, status, reply) VALUES 
-('小区门口的路灯坏了好几天了，晚上很黑，希望尽快维修。', '13800138001', '张先生', 'resolved', '您好，路灯已于昨日修复完成，感谢您的反馈！'),
-('希望能增加小区内的垃圾桶数量，特别是在健身区附近。', '13800138002', '李女士', 'processing', NULL),
-('楼道的消防设施好像过期了，请检查一下。', NULL, NULL, 'pending', NULL);
+INSERT INTO feedback (content, contact, contact_name, type, status, reply) VALUES 
+('小区门口的路灯坏了好几天了，晚上很黑，希望尽快维修。', '13800138001', '张先生', '维修', 'resolved', '您好，路灯已于昨日修复完成，感谢您的反馈！'),
+('希望能增加小区内的垃圾桶数量，特别是在健身区附近。', '13800138002', '李女士', '其他', 'processing', NULL),
+('楼道的消防设施好像过期了，请检查一下。', NULL, NULL, '安全', 'pending', NULL);

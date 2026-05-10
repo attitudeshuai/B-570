@@ -32,6 +32,7 @@ public class FeedbackService {
         feedback.setContent(dto.getContent());
         feedback.setContact(dto.getContact());
         feedback.setContactName(dto.getContactName());
+        feedback.setType(dto.getType() != null ? dto.getType() : "其他");
         feedback.setStatus("pending");
         feedbackMapper.insert(feedback);
         return feedback;
@@ -41,6 +42,9 @@ public class FeedbackService {
         Feedback feedback = getFeedbackById(id);
         feedback.setStatus(dto.getStatus());
         feedback.setReply(dto.getReply());
+        if (dto.getType() != null) {
+            feedback.setType(dto.getType());
+        }
         feedbackMapper.update(feedback);
         return feedback;
     }
