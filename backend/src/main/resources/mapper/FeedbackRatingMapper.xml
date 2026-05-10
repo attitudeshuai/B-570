@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.property.mapper.FeedbackRatingMapper">
+
+    <resultMap id="BaseResultMap" type="com.property.entity.FeedbackRating">
+        <id column="id" property="id"/>
+        <result column="feedback_id" property="feedbackId"/>
+        <result column="rating" property="rating"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <resultMap id="StatisticsResultMap" type="com.property.dto.RatingStatisticsDTO">
+        <result column="feedback_type" property="feedbackType"/>
+        <result column="total_count" property="totalCount"/>
+        <result column="average_rating" property="averageRating"/>
+        <result column="negative_count" property="negativeCount"/>
+        <result column="negative_rate" property="negativeRate"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.property.entity.FeedbackRating" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO feedback_rating (feedback_id, rating)
+        VALUES (#{feedbackId}, #{rating})
+    </insert>
+
+    <select id="findByFeedbackId" resultMap="BaseResultMap">
+        SELECT id, feedback_id, rating, created_at
+        FROM feedback_rating
+        WHERE feedback_id = #{feedbackId}
+        LIMIT 1
+    </select>
+
+    <select id="findStatistics" resultMap="StatisticsResultMap">
+        SELECT
+            f.type AS feedback_type,
+            COUNT(r.id) AS total_count,
+            AVG(r.rating) AS average_rating,
+            SUM(CASE WHEN r.rating <= 3 THEN 1 ELSE 0 END) AS negative_count,
+            CASE WHEN COUNT(r.id) > 0
+                THEN SUM(CASE WHEN r.rating <= 3 THEN 1 ELSE 0 END) * 100.0 / COUNT(r.id)
+                ELSE 0
+            END AS negative_rate
+        FROM feedback f
+        LEFT JOIN feedback_rating r ON f.id = r.feedback_id
+        WHERE r.id IS NOT NULL
+        <if test="startTime != null">
+            AND r.created_at >= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND r.created_at <= #{endTime}
+        </if>
+        GROUP BY f.type
+    </select>
+
+</mapper>

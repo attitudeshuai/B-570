@@ -7,4 +7,5 @@ public class FeedbackDTO {
     private String content;
     private String contact;
     private String contactName;
+    private String type;
 }

@@ -39,6 +39,12 @@ export const feedbackApi = {
   delete: (id) => api.delete(`/feedbacks/${id}`)
 }
 
+// 评分相关API
+export const ratingApi = {
+  create: (data) => api.post('/ratings', data),
+  getStatistics: (params) => api.get('/ratings/statistics', { params })
+}
+
 // 通知相关API
 export const noticeApi = {
   getAll: () => api.get('/notices'),
