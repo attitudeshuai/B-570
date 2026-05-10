@@ -6,4 +6,5 @@ import lombok.Data;
 public class FeedbackReplyDTO {
     private String status;
     private String reply;
+    private String type;
 }

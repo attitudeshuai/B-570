@@ -20,6 +20,10 @@
             <i class="el-icon-bell"></i>
             <span>通知管理</span>
           </el-menu-item>
+          <el-menu-item index="/admin/satisfaction">
+            <i class="el-icon-star-on"></i>
+            <span>满意度统计</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
       

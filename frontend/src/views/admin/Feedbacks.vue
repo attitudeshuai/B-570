@@ -26,6 +26,17 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="type" label="类型" width="80">
+          <template slot-scope="scope">
+            {{ scope.row.type || '其他' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="ratingScore" label="评分" width="100" align="center">
+          <template slot-scope="scope">
+            <el-rate v-if="scope.row.ratingScore" :value="scope.row.ratingScore" disabled></el-rate>
+            <span v-else style="color: #ccc;">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="createdAt" label="提交时间" width="160">
           <template slot-scope="scope">
             {{ formatDate(scope.row.createdAt) }}
@@ -48,6 +59,15 @@
       <el-form ref="replyForm" :model="replyForm" label-width="80px">
         <el-form-item label="反馈内容">
           <div class="feedback-content">{{ currentFeedback.content }}</div>
+        </el-form-item>
+        <el-form-item label="反馈类型">
+          <el-select v-model="replyForm.type" placeholder="请选择类型">
+            <el-option label="维修" value="维修"></el-option>
+            <el-option label="安全" value="安全"></el-option>
+            <el-option label="环境" value="环境"></el-option>
+            <el-option label="服务" value="服务"></el-option>
+            <el-option label="其他" value="其他"></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="状态">
           <el-radio-group v-model="replyForm.status">
@@ -112,7 +132,8 @@ export default {
       this.currentFeedback = row
       this.replyForm = {
         status: row.status || 'pending',
-        reply: row.reply || ''
+        reply: row.reply || '',
+        type: row.type || '其他'
       }
       this.dialogVisible = true
     },

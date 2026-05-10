@@ -20,6 +20,15 @@
               <el-form-item label="联系方式" prop="contact">
                 <el-input v-model="form.contact" placeholder="请输入手机号或邮箱（选填）"></el-input>
               </el-form-item>
+              <el-form-item label="反馈类型" prop="type">
+                <el-select v-model="form.type" placeholder="请选择反馈类型">
+                  <el-option label="维修" value="维修"></el-option>
+                  <el-option label="安全" value="安全"></el-option>
+                  <el-option label="环境" value="环境"></el-option>
+                  <el-option label="服务" value="服务"></el-option>
+                  <el-option label="其他" value="其他"></el-option>
+                </el-select>
+              </el-form-item>
               <el-form-item label="反馈内容" prop="content">
                 <el-input 
                   type="textarea" 
@@ -46,14 +55,39 @@
             </div>
             <div v-for="item in feedbacks" :key="item.id" class="feedback-item">
               <div class="item-header">
-                <el-tag :type="getStatusType(item.status)" size="small">
-                  {{ getStatusText(item.status) }}
-                </el-tag>
+                <div class="item-header-left">
+                  <el-tag :type="getStatusType(item.status)" size="small">
+                    {{ getStatusText(item.status) }}
+                  </el-tag>
+                  <el-tag v-if="item.type" size="small" type="info" style="margin-left: 8px;">
+                    {{ item.type }}
+                  </el-tag>
+                </div>
                 <span class="date">{{ formatDate(item.createdAt) }}</span>
               </div>
               <div class="item-content">{{ item.content }}</div>
               <div v-if="item.reply" class="item-reply">
                 <strong>物业回复：</strong>{{ item.reply }}
+              </div>
+              <div v-if="item.status === 'resolved'" class="item-rating">
+                <template v-if="item.ratingScore">
+                  <span class="rating-label">满意度：</span>
+                  <el-rate
+                    :value="item.ratingScore"
+                    disabled
+                    show-score
+                    text-color="#ff9900"
+                  ></el-rate>
+                </template>
+                <template v-else>
+                  <span class="rating-label">请为本次服务评分：</span>
+                  <el-rate
+                    v-model="ratingMap[item.id]"
+                    show-text
+                    :texts="['非常不满意','不满意','一般','满意','非常满意']"
+                    @change="handleRate(item.id)"
+                  ></el-rate>
+                </template>
               </div>
             </div>
           </div>
@@ -64,7 +98,7 @@
 </template>
 
 <script>
-import { feedbackApi } from '@/api'
+import { feedbackApi, ratingApi } from '@/api'
 
 export default {
   name: 'Feedback',
@@ -74,6 +108,7 @@ export default {
       form: {
         contactName: '',
         contact: '',
+        type: '其他',
         content: ''
       },
       rules: {
@@ -83,6 +118,7 @@ export default {
         ]
       },
       feedbacks: [],
+      ratingMap: {},
       loading: false,
       submitting: false
     }
@@ -129,6 +165,23 @@ export default {
         console.error('获取反馈列表失败', error)
       } finally {
         this.loading = false
+      }
+    },
+    async handleRate(feedbackId) {
+      const score = this.ratingMap[feedbackId]
+      if (!score) return
+      try {
+        const res = await ratingApi.submit({ feedbackId, score })
+        if (res.code === 200) {
+          this.$message.success('评分提交成功')
+          this.fetchFeedbacks()
+        } else {
+          this.$message.error(res.message || '评分失败')
+          this.$set(this.ratingMap, feedbackId, 0)
+        }
+      } catch (error) {
+        this.$message.error('评分失败，请稍后重试')
+        this.$set(this.ratingMap, feedbackId, 0)
       }
     },
     formatDate(dateStr) {
@@ -226,6 +279,11 @@ export default {
   margin-bottom: 12px;
 }
 
+.item-header-left {
+  display: flex;
+  align-items: center;
+}
+
 .date {
   color: #999;
   font-size: 13px;
@@ -243,9 +301,24 @@ export default {
   border-radius: 6px;
   color: #666;
   font-size: 14px;
+  margin-bottom: 12px;
 }
 
 .item-reply strong {
   color: #667eea;
+}
+
+.item-rating {
+  display: flex;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px dashed #eee;
+}
+
+.rating-label {
+  color: #666;
+  font-size: 14px;
+  margin-right: 10px;
+  white-space: nowrap;
 }
 </style>
