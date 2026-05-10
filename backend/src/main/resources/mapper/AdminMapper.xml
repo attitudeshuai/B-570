@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.property.mapper.AdminMapper">
+    
+    <resultMap id="AdminResultMap" type="Admin">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    
+    <select id="findByUsername" resultMap="AdminResultMap">
+        SELECT id, username, password, created_at
+        FROM admin
+        WHERE username = #{username}
+    </select>
+    
+    <select id="findById" resultMap="AdminResultMap">
+        SELECT id, username, password, created_at
+        FROM admin
+        WHERE id = #{id}
+    </select>
+    
+    <insert id="insert" parameterType="Admin" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO admin (username, password, created_at)
+        VALUES (#{username}, #{password}, NOW())
+    </insert>
+    
+    <update id="update" parameterType="Admin">
+        UPDATE admin
+        SET username = #{username},
+            password = #{password}
+        WHERE id = #{id}
+    </update>
+    
+</mapper>
