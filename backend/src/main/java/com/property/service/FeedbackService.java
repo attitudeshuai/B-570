@@ -32,6 +32,7 @@ public class FeedbackService {
         feedback.setContent(dto.getContent());
         feedback.setContact(dto.getContact());
         feedback.setContactName(dto.getContactName());
+        feedback.setType(dto.getType());
         feedback.setStatus("pending");
         feedbackMapper.insert(feedback);
         return feedback;

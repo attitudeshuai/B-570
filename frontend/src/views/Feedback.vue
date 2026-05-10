@@ -14,6 +14,15 @@
         <el-tab-pane label="提交反馈" name="submit">
           <div class="form-section">
             <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+              <el-form-item label="反馈类型" prop="type">
+                <el-select v-model="form.type" placeholder="请选择反馈类型" style="width: 100%">
+                  <el-option label="维修" value="维修"></el-option>
+                  <el-option label="建议" value="建议"></el-option>
+                  <el-option label="投诉" value="投诉"></el-option>
+                  <el-option label="安全" value="安全"></el-option>
+                  <el-option label="其他" value="其他"></el-option>
+                </el-select>
+              </el-form-item>
               <el-form-item label="联系人" prop="contactName">
                 <el-input v-model="form.contactName" placeholder="请输入您的姓名（选填）"></el-input>
               </el-form-item>
@@ -21,9 +30,9 @@
                 <el-input v-model="form.contact" placeholder="请输入手机号或邮箱（选填）"></el-input>
               </el-form-item>
               <el-form-item label="反馈内容" prop="content">
-                <el-input 
-                  type="textarea" 
-                  v-model="form.content" 
+                <el-input
+                  type="textarea"
+                  v-model="form.content"
                   :rows="6"
                   placeholder="请详细描述您的问题、建议或意见..."
                 ></el-input>
@@ -46,14 +55,30 @@
             </div>
             <div v-for="item in feedbacks" :key="item.id" class="feedback-item">
               <div class="item-header">
-                <el-tag :type="getStatusType(item.status)" size="small">
-                  {{ getStatusText(item.status) }}
-                </el-tag>
+                <div>
+                  <el-tag :type="getStatusType(item.status)" size="small">
+                    {{ getStatusText(item.status) }}
+                  </el-tag>
+                  <el-tag v-if="item.type" type="info" size="small" style="margin-left: 8px">
+                    {{ item.type }}
+                  </el-tag>
+                </div>
                 <span class="date">{{ formatDate(item.createdAt) }}</span>
               </div>
               <div class="item-content">{{ item.content }}</div>
               <div v-if="item.reply" class="item-reply">
                 <strong>物业回复：</strong>{{ item.reply }}
+              </div>
+              <div v-if="item.status === 'resolved'" class="item-rating">
+                <template v-if="item.rating">
+                  <span class="rated-text">您的评分：</span>
+                  <el-rate v-model="item.rating" disabled text-color="#ff9900"></el-rate>
+                  <span class="rated-note">（已锁定）</span>
+                </template>
+                <template v-else>
+                  <span class="rating-text">请为本次服务评分：</span>
+                  <el-rate v-model="item.tempRating" @change="handleRateChange(item, $event)"></el-rate>
+                </template>
               </div>
             </div>
           </div>
@@ -64,7 +89,7 @@
 </template>
 
 <script>
-import { feedbackApi } from '@/api'
+import { feedbackApi, ratingApi } from '@/api'
 
 export default {
   name: 'Feedback',
@@ -74,9 +99,13 @@ export default {
       form: {
         contactName: '',
         contact: '',
-        content: ''
+        content: '',
+        type: ''
       },
       rules: {
+        type: [
+          { required: true, message: '请选择反馈类型', trigger: 'change' }
+        ],
         content: [
           { required: true, message: '请输入反馈内容', trigger: 'blur' },
           { min: 10, message: '反馈内容至少10个字符', trigger: 'blur' }
@@ -123,12 +152,33 @@ export default {
       try {
         const res = await feedbackApi.getAll()
         if (res.code === 200) {
-          this.feedbacks = res.data
+          this.feedbacks = res.data.map(item => ({
+            ...item,
+            tempRating: 0
+          }))
         }
       } catch (error) {
         console.error('获取反馈列表失败', error)
       } finally {
         this.loading = false
+      }
+    },
+    async handleRateChange(item, rating) {
+      try {
+        const res = await ratingApi.create({
+          feedbackId: item.id,
+          rating: rating
+        })
+        if (res.code === 200) {
+          this.$message.success('评分成功！')
+          item.rating = rating
+        } else {
+          this.$message.error(res.message || '评分失败')
+          item.tempRating = 0
+        }
+      } catch (error) {
+        this.$message.error('评分失败，请稍后重试')
+        item.tempRating = 0
       }
     },
     formatDate(dateStr) {
@@ -247,5 +297,25 @@ export default {
 
 .item-reply strong {
   color: #667eea;
+}
+
+.item-rating {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #eee;
+  display: flex;
+  align-items: center;
+}
+
+.rating-text, .rated-text {
+  color: #666;
+  font-size: 14px;
+  margin-right: 8px;
+}
+
+.rated-note {
+  color: #999;
+  font-size: 12px;
+  margin-left: 8px;
 }
 </style>

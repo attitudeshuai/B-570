@@ -20,6 +20,10 @@
             <i class="el-icon-bell"></i>
             <span>通知管理</span>
           </el-menu-item>
+          <el-menu-item index="/admin/statistics">
+            <i class="el-icon-data-line"></i>
+            <span>评分统计</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
       
