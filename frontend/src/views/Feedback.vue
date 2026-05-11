@@ -55,6 +55,35 @@
               <div v-if="item.reply" class="item-reply">
                 <strong>物业回复：</strong>{{ item.reply }}
               </div>
+              <div v-if="item.status === 'resolved'" class="item-rating">
+                <div v-if="item.rating" class="rated">
+                  <span class="rating-label">您的评分：</span>
+                  <span class="rating-stars">
+                    <i v-for="n in 5" :key="n" 
+                       :class="n <= item.rating.score ? 'el-icon-star-on' : 'el-icon-star-off'"
+                       :style="{ color: n <= item.rating.score ? '#F7BA2A' : '#C0C4CC' }"></i>
+                  </span>
+                  <span class="rating-score">{{ item.rating.score }}分</span>
+                  <p v-if="item.rating.comment" class="rating-comment">{{ item.rating.comment }}</p>
+                </div>
+                <div v-else class="rating-form">
+                  <span class="rating-label">服务满意度：</span>
+                  <el-rate v-model="ratingForms[item.id].score" 
+                           :max="5" 
+                           show-text
+                           :texts="['极差', '较差', '一般', '满意', '非常满意']">
+                  </el-rate>
+                  <el-input v-model="ratingForms[item.id].comment" 
+                            type="textarea" 
+                            :rows="2" 
+                            placeholder="评价内容（选填）"
+                            class="rating-textarea">
+                  </el-input>
+                  <el-button type="primary" size="small" @click="submitRating(item)" :loading="ratingForms[item.id].submitting">
+                    提交评分
+                  </el-button>
+                </div>
+              </div>
             </div>
           </div>
         </el-tab-pane>
@@ -84,7 +113,8 @@ export default {
       },
       feedbacks: [],
       loading: false,
-      submitting: false
+      submitting: false,
+      ratingForms: {}
     }
   },
   watch: {
@@ -124,11 +154,44 @@ export default {
         const res = await feedbackApi.getAll()
         if (res.code === 200) {
           this.feedbacks = res.data
+          this.initRatingForms(res.data)
         }
       } catch (error) {
         console.error('获取反馈列表失败', error)
       } finally {
         this.loading = false
+      }
+    },
+    initRatingForms(feedbacks) {
+      const forms = {}
+      feedbacks.forEach(item => {
+        forms[item.id] = {
+          score: 5,
+          comment: '',
+          submitting: false
+        }
+      })
+      this.ratingForms = forms
+    },
+    async submitRating(item) {
+      const form = this.ratingForms[item.id]
+      form.submitting = true
+      try {
+        const res = await feedbackApi.submitRating({
+          feedbackId: item.id,
+          score: form.score,
+          comment: form.comment
+        })
+        if (res.code === 200) {
+          this.$message.success('评分成功！')
+          item.rating = res.data
+        } else {
+          this.$message.error(res.message || '评分失败')
+        }
+      } catch (error) {
+        this.$message.error('评分失败，请稍后重试')
+      } finally {
+        form.submitting = false
       }
     },
     formatDate(dateStr) {
@@ -247,5 +310,56 @@ export default {
 
 .item-reply strong {
   color: #667eea;
+}
+
+.item-rating {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #eee;
+}
+
+.rating-label {
+  color: #666;
+  margin-right: 10px;
+}
+
+.rated {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.rating-stars {
+  margin-right: 10px;
+}
+
+.rating-stars i {
+  font-size: 18px;
+  margin-right: 2px;
+}
+
+.rating-score {
+  color: #F7BA2A;
+  font-weight: 500;
+}
+
+.rating-comment {
+  width: 100%;
+  margin: 10px 0 0 0;
+  padding: 10px;
+  background: #f5f7fa;
+  border-radius: 4px;
+  color: #666;
+  font-size: 13px;
+}
+
+.rating-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rating-textarea {
+  margin-top: 5px;
 }
 </style>

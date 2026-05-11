@@ -2,12 +2,17 @@ package com.property.controller;
 
 import com.property.dto.ApiResponse;
 import com.property.dto.FeedbackDTO;
+import com.property.dto.FeedbackRatingDTO;
 import com.property.dto.FeedbackReplyDTO;
+import com.property.dto.RatingStatisticsDTO;
 import com.property.entity.Feedback;
+import com.property.entity.FeedbackRating;
 import com.property.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -41,5 +46,17 @@ public class FeedbackController {
     public ApiResponse<Void> deleteFeedback(@PathVariable Long id) {
         feedbackService.deleteFeedback(id);
         return ApiResponse.success("删除成功", null);
+    }
+    
+    @PostMapping("/rating")
+    public ApiResponse<FeedbackRating> submitRating(@RequestBody FeedbackRatingDTO dto) {
+        return ApiResponse.success("评分成功", feedbackService.submitRating(dto));
+    }
+    
+    @GetMapping("/statistics/rating")
+    public ApiResponse<List<RatingStatisticsDTO>> getRatingStatistics(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
+        return ApiResponse.success(feedbackService.getRatingStatistics(startTime, endTime));
     }
 }

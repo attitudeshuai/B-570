@@ -26,6 +26,15 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="评分" width="120">
+          <template slot-scope="scope">
+            <span v-if="scope.row.rating">
+              <span v-for="n in 5" :key="n" 
+                    :style="{ color: n <= scope.row.rating.score ? '#F7BA2A' : '#C0C4CC' }">★</span>
+            </span>
+            <span v-else style="color: #999;">未评分</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="createdAt" label="提交时间" width="160">
           <template slot-scope="scope">
             {{ formatDate(scope.row.createdAt) }}
