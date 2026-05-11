@@ -36,7 +36,9 @@ export const feedbackApi = {
   getById: (id) => api.get(`/feedbacks/${id}`),
   create: (data) => api.post('/feedbacks', data),
   reply: (id, data) => api.put(`/feedbacks/${id}`, data),
-  delete: (id) => api.delete(`/feedbacks/${id}`)
+  delete: (id) => api.delete(`/feedbacks/${id}`),
+  submitRating: (data) => api.post('/feedbacks/rating', data),
+  getRatingStatistics: (params) => api.get('/feedbacks/statistics/rating', { params })
 }
 
 // 通知相关API

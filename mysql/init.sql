@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS feedback (
     content VARCHAR(1000) NOT NULL,
     contact VARCHAR(100),
     contact_name VARCHAR(50),
+    type VARCHAR(50),
     status VARCHAR(20) DEFAULT 'pending',
     reply VARCHAR(1000),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -38,6 +39,18 @@ CREATE TABLE IF NOT EXISTS notice (
     content VARCHAR(2000) NOT NULL,
     type VARCHAR(50),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 反馈评分表
+CREATE TABLE IF NOT EXISTS feedback_rating (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    feedback_id BIGINT NOT NULL UNIQUE,
+    score INT NOT NULL CHECK (score BETWEEN 1 AND 5),
+    comment VARCHAR(500),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (feedback_id) REFERENCES feedback(id) ON DELETE CASCADE,
+    INDEX idx_feedback_id (feedback_id),
+    INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 管理员账号由应用程序自动初始化 (用户名: admin, 密码: admin123)

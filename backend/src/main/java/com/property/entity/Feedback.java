@@ -16,9 +16,13 @@ public class Feedback {
     
     private String status = "pending"; // pending, processing, resolved
     
+    private String type;
+    
     private String reply;
     
     private LocalDateTime createdAt;
     
     private LocalDateTime updatedAt;
+    
+    private FeedbackRating rating;
 }

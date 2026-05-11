@@ -39,6 +39,11 @@ const routes = [
         path: 'notices',
         name: 'AdminNotices',
         component: () => import('../views/admin/Notices.vue')
+      },
+      {
+        path: 'rating-statistics',
+        name: 'RatingStatistics',
+        component: () => import('../views/admin/RatingStatistics.vue')
       }
     ]
   }

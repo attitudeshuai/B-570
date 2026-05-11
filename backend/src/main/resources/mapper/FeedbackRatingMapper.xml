@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.property.mapper.FeedbackRatingMapper">
+    
+    <resultMap id="BaseResultMap" type="com.property.entity.FeedbackRating">
+        <id column="id" property="id"/>
+        <result column="feedback_id" property="feedbackId"/>
+        <result column="score" property="score"/>
+        <result column="comment" property="comment"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+    
+    <resultMap id="StatisticsResultMap" type="com.property.dto.RatingStatisticsDTO">
+        <result column="type" property="type"/>
+        <result column="ratedCount" property="ratedCount"/>
+        <result column="averageScore" property="averageScore"/>
+        <result column="badRate" property="badRate"/>
+    </resultMap>
+    
+    <select id="findByFeedbackId" resultMap="BaseResultMap">
+        SELECT * FROM feedback_rating WHERE feedback_id = #{feedbackId}
+    </select>
+    
+    <insert id="insert" parameterType="com.property.entity.FeedbackRating" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO feedback_rating (feedback_id, score, comment, created_at)
+        VALUES (#{feedbackId}, #{score}, #{comment}, NOW())
+    </insert>
+    
+    <select id="findStatisticsByDateRangeGroupByType" resultMap="StatisticsResultMap">
+        SELECT 
+            f.type,
+            COUNT(*) AS ratedCount,
+            ROUND(AVG(fr.score), 2) AS averageScore,
+            ROUND(SUM(CASE WHEN fr.score &lt;= 3 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS badRate
+        FROM feedback_rating fr
+        INNER JOIN feedback f ON fr.feedback_id = f.id
+        WHERE fr.created_at BETWEEN #{startTime} AND #{endTime}
+        GROUP BY f.type
+        ORDER BY f.type
+    </select>
+</mapper>
